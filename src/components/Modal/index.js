@@ -1,0 +1,1 @@
+export { ModalImg } from './Modal';
