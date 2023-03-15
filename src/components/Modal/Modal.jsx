@@ -1,38 +1,37 @@
-import { Component } from 'react';
+import { useEffect } from 'react';
+import PropTypes from 'prop-types';
 
-class ModalImg extends Component {
-  componentDidMount() {
-    document.addEventListener('keydown', this.listenerKeyDown);
-  }
-  componentWillUnmount() {
-    document.removeEventListener('keydown', this.listenerKeyDown);
-  }
+function ModalImg({ searchLargeImage, onClose }) {
+  useEffect(() => {
+    const listenerKeyDown = event => {
+      if (event.key === 'Escape') {
+        onClose();
+      }
+    };
+    document.addEventListener('keydown', listenerKeyDown);
+    return () => {
+      document.removeEventListener('keydown', listenerKeyDown);
+    };
+  }, [onClose]);
 
-  listenerKeyDown = event => {
-    if (event.key === 'Escape') {
-      this.props.onClose();
-    }
-  };
-
-  ModalClose = event => {
+  const ModalClose = event => {
     if (event.target.className === 'Overlay') {
-      this.props.onClose();
+      onClose();
     }
   };
 
-  render() {
-    return (
-      <div
-        className="Overlay"
-        onClick={this.ModalClose}
-        onKeyDown={this.listenerKeyDown}
-      >
-        <div className="Modal">
-          <img src={this.props.searchLargeImage} alt="" />
-        </div>
+  return (
+    <div className="Overlay" onClick={ModalClose}>
+      <div className="Modal">
+        <img src={searchLargeImage} alt="" />
       </div>
-    );
-  }
+    </div>
+  );
 }
+
+ModalImg.propTypes = {
+  searchLargeImage: PropTypes.string.isRequired,
+  onClose: PropTypes.func.isRequired,
+};
 
 export default ModalImg;

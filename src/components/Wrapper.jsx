@@ -13,7 +13,6 @@ function Wrapper() {
   const [search, setSearch] = useState('');
   const [page, setPages] = useState(1);
   const [perPage, setPerPage] = useState(20);
-  const [modalGallery, setModalGallery] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [isDownloadHits, setIsDownloadsHits] = useState(false);
   const [error, setError] = useState(false);

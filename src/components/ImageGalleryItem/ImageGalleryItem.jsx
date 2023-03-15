@@ -1,9 +1,9 @@
 import PropTypes from 'prop-types';
 
 function ImageGalleryItem({ onClick, data }) {
-  function openModal() {
+  const openModal = () => {
     onClick(data.largeImageURL);
-  }
+  };
   return (
     <li onClick={openModal} className="ImageGalleryItem" id={data.id}>
       <img
