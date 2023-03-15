@@ -1,4 +1,4 @@
-import { Component } from 'react';
+import { useState, useEffect } from 'react';
 import { getImgs } from './fetch';
 
 import Searchbar from './Searchbar';
@@ -7,88 +7,79 @@ import ReadMoreBtn from './ReadMoreBtn';
 import Loader from './Loader';
 import Toastify from './Toastify/Toastify';
 
-class Wrapper extends Component {
-  state = {
-    data: [],
-    totalHits: 0,
-    search: '',
-    page: 1,
-    perPage: 20,
-    modalGallery: false,
-    isLoading: false,
-    isDownloadHits: false,
-    error: false,
-  };
+function Wrapper() {
+  const [data, setData] = useState([]);
+  const [totalHits, setTotalHits] = useState(0);
+  const [search, setSearch] = useState('');
+  const [page, setPages] = useState(1);
+  const [perPage, setPerPage] = useState(20);
+  const [modalGallery, setModalGallery] = useState(false);
+  const [isLoading, setIsLoading] = useState(false);
+  const [isDownloadHits, setIsDownloadsHits] = useState(false);
+  const [error, setError] = useState(false);
 
-  componentDidUpdate(_prevProps, prevState) {
-    if (
-      prevState.page !== this.state.page ||
-      prevState.search !== this.state.search
-    ) {
-      this.getData();
-    }
-  }
-
-  getData = async () => {
-    try {
-      this.setState({ isLoading: true });
-      const {
-        data: { hits, totalHits },
-      } = await getImgs(this.state.search, this.state.page, this.state.perPage);
-      if (hits.length === 0) {
-        this.setState({ isDownloadHits: true });
-        return;
+  useEffect(() => {
+    const getData = async () => {
+      try {
+        setIsLoading(true);
+        const {
+          data: { hits, totalHits },
+        } = await getImgs(search, page, perPage);
+        if (hits.length === 0) {
+          setIsDownloadsHits(true);
+          return;
+        }
+        setData(prev => [...prev, ...hits]);
+        setTotalHits(totalHits);
+      } catch (e) {
+        setError(true);
+        throw new Error(e);
+      } finally {
+        setIsLoading(false);
       }
-      this.setState(prev => ({
-        data: [...prev.data, ...hits],
-        totalHits: totalHits,
-      }));
-    } catch (e) {
-      this.setState({ error: true });
-      throw new Error(e);
-    } finally {
-      this.setState({ isLoading: false });
-    }
-  };
+    };
 
-  formOnSubmit = event => {
+    if (search) {
+      getData();
+    }
+  }, [search, page, perPage]);
+
+  const formOnSubmit = event => {
     event.preventDefault();
-    const form = event.currentTarget;
-    const inputValue = form.elements.search.value.toLowerCase().trim();
+    const formEvent = event.currentTarget;
+    const inputValue = formEvent.elements.search.value.toLowerCase().trim();
+
     if (inputValue.length === 0) {
-      this.setState({ data: [] });
+      setData([]);
       return;
     }
-    this.setState({
-      search: inputValue,
-      data: [],
-      page: 1,
-      perPage: 20,
-      totalHits: 0,
-    });
-    form.elements.search.value = '';
+    if (search === inputValue) return;
+
+    setSearch(inputValue);
+    setData([]);
+    setPages(1);
+    setPerPage(20);
+    setTotalHits(0);
+
+    formEvent.elements.search.value = '';
   };
 
-  loadMoreBtnClick = () => {
-    this.setState(prev => ({ page: prev.page + 1 }));
+  const loadMoreBtnClick = () => {
+    setPages(prev => prev + 1);
   };
 
-  render() {
-    const { isLoading, data, totalHits, isDownloadHits, error } = this.state;
-
-    return (
-      <div className="App">
-        <Searchbar onSubmit={this.formOnSubmit} />
-        {isDownloadHits && <Toastify massage="There is no such request" />}
-        {error && <Toastify massage="Server error" />}
-        <ImageGallery img={data} />
-        {isLoading && <Loader />}
-        {data.length > 0 && data.length < totalHits && (
-          <ReadMoreBtn title="Load More" event={this.loadMoreBtnClick} />
-        )}
-      </div>
-    );
-  }
+  return (
+    <div className="App">
+      <Searchbar onSubmit={formOnSubmit} />
+      {isDownloadHits && <Toastify massage="There is no such request" />}
+      {error && <Toastify massage="Server error" />}
+      <ImageGallery img={data} />
+      {isLoading && <Loader />}
+      {data.length > 0 && data.length < totalHits && (
+        <ReadMoreBtn title="Load More" event={loadMoreBtnClick} />
+      )}
+    </div>
+  );
 }
 
 export default Wrapper;
